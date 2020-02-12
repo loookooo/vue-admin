@@ -51,11 +51,9 @@
 </template>
 <script>
 import { stripscript } from '@/utils/validate.js';
-import { reactive, ref, isRef } from '@vue/composition-api';
-
 export default {
   name: "login",
-  setup(props, context){
+  data() {
        var validateCode = (rule, value, callback) => {
            if (value == '') {
               callback(new Error('请输入验证码')); 
@@ -71,8 +69,8 @@ export default {
         }
       };
       var validatePassword = (rule, value, callback) => {
-          ruleForm.password = stripscript(value);
-          value = ruleForm.password;
+          this.ruleForm.password = stripscript(value);
+          value = this.ruleForm.password;
         if (value === '') {
           callback(new Error('请输入密码'));
         }  else {
@@ -85,20 +83,23 @@ export default {
         //   value = this.ruleForm.passwords;
         if (value === '') {
           callback(new Error('请输入密码'));
-        } else if(value != ruleForm.password){
+        } else if(value != this.ruleForm.password){
           callback(new Error('两次输入密码不一致'));
         } else {
           callback();
         }
       };
-      //表单参数
-      const ruleForm = reactive({
+    return {
+         ruleForm: {
           username: '',
           password: '',
           passwords: '',
           code: ''
-      });
-      const rules = reactive({
+        },
+        //模块值
+        model: 'login',
+        //表单的数据
+        rules: {
           username: [
             { validator: validateUsername, trigger: 'blur' }
           ],
@@ -111,44 +112,36 @@ export default {
           code: [
             { validator: validateCode, trigger: 'blur' }
           ]
-        });
-      //页面参数
-     const menuTab = reactive([
+        },
+      menuTab: [
         { txt: "登录", current: true, type: 'login' },
         { txt: "注册", current: false, type: 'register' }
-      ]);
-      //模块值
-      const model = ref('login');
-      //方法
-        //登录注册切换
-        const toggleMenu = item=>{
-            menuTab.forEach((element,index)=>{
-                element.current = false;
-            })
-            item.current = true;
-            model.value = item.type;
-        }
-        //提交
-        const submitForm = formName =>{
-            context.refs[formName].validate((valid) => {
-                if (valid) {
-                    alert('submit!');
-                } else {
-                    console.log('error submit!!');
-                    return false;
-                }
-            });
-        }
-        return {
-            //参数
-            ruleForm,
-            rules,
-            menuTab,
-            model,
-            //方法
-            toggleMenu,
-            submitForm,
-        }
+      ],
+      isActive: true
+    };
+  },
+  methods: {
+       submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            alert('submit!');
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+      },
+      resetForm(formName) {
+        this.$refs[formName].resetFields();
+      },
+      //登录注册切换
+    toggleMenu(item) {
+        this.model = item.type;
+        this.menuTab.forEach(element => {
+            element.current = false ;
+        });
+        item.current = true;
+    }
   }
 };
 </script>
