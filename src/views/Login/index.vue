@@ -12,37 +12,27 @@
         </li>
       </ul>
       <!-- 表单 start -->
-      <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" class="login_form" size="mini">
+      <el-form :model="userinfo" status-icon :rules="rules" ref="ruleForm" class="login_form" size="mini">
          
         <el-form-item prop="username">
-             <label>邮箱</label>
-            <el-input type="email" v-model="ruleForm.username" autocomplete="off"></el-input>
+             <label for="username">账号</label>
+            <el-input type="text" v-model="userinfo.username" autocomplete="off"></el-input>
         </el-form-item>
        
         <el-form-item prop="password">
-             <label>密码</label>
-            <el-input type="password" v-model="ruleForm.password" autocomplete="off"></el-input>
+             <label for="password">密码</label>
+            <el-input type="password" v-model="userinfo.password" autocomplete="off"></el-input>
         </el-form-item>
        
-        <el-form-item prop="passwords" v-if="model === 'register'">
-             <label>重复密码</label>
+        <!-- <el-form-item prop="passwords" v-if="model === 'register'">
+             <label for="passwords">重复密码</label>
             <el-input type="password" v-model="ruleForm.passwords" autocomplete="off"></el-input>
-        </el-form-item>
-
-        <el-form-item prop="code">
-             <label>验证码</label>
-                <el-row :gutter="20">
-                    <el-col :span="16">
-                        <el-input v-model="ruleForm.code" minlength="6" maxlength="6"></el-input>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-button type="success" style="margin-left:-5px;">获取验证码</el-button>
-                    </el-col>
-                </el-row>
-        </el-form-item>
+        </el-form-item> -->
 
         <el-form-item>
-            <el-button type="danger" @click="submitForm('ruleForm')" style="width:100%;">登录</el-button>
+            <el-button type="primary" :disabled="btnstatus"  @click="submitForm('ruleForm')" style="width:100%;">
+              {{model === 'login' ? '登录' : '注册'}}
+            </el-button>
         </el-form-item>
        </el-form>
     <!-- 表单 end -->
@@ -50,68 +40,33 @@
   </div>
 </template>
 <script>
-import { stripscript } from '@/utils/validate.js';
+import { login, register } from '@/api/login.js';
 import { reactive, ref, isRef } from '@vue/composition-api';
-
 export default {
   name: "login",
-  setup(props, context){
-       var validateCode = (rule, value, callback) => {
-           if (value == '') {
-              callback(new Error('请输入验证码')); 
-           } else {
-               callback();
-           }
-      };
+  setup(props, { refs, root }){
+      //账号验证规则
       var validateUsername = (rule, value, callback) => {
         if (value === '') {
-          callback(new Error('请输入邮箱'));
-        } else {
-          callback();
-        }
+          callback(new Error('请输入账号'));
+        } else { callback();}
       };
+      //密码验证规则
       var validatePassword = (rule, value, callback) => {
-          ruleForm.password = stripscript(value);
-          value = ruleForm.password;
         if (value === '') {
           callback(new Error('请输入密码'));
-        }  else {
-          callback();
-        }
+        }  else {  callback(); }
       };
-       var validatePasswords = (rule, value, callback) => {
-        // 去除特殊字符
-        //   this.ruleForm.passwords = stripscript(value);
-        //   value = this.ruleForm.passwords;
-        if (value === '') {
-          callback(new Error('请输入密码'));
-        } else if(value != ruleForm.password){
-          callback(new Error('两次输入密码不一致'));
-        } else {
-          callback();
-        }
-      };
-      //表单参数
-      const ruleForm = reactive({
-          username: '',
-          password: '',
-          passwords: '',
-          code: ''
-      });
+      //用户信息
+      const userinfo = reactive({
+        username: null,
+        password: null
+      }); 
+      //表单验证规则
       const rules = reactive({
-          username: [
-            { validator: validateUsername, trigger: 'blur' }
-          ],
-          password: [
-            { validator: validatePassword, trigger: 'blur' }
-          ],
-          passwords: [
-               { validator: validatePasswords, trigger: 'blur' }
-          ],
-          code: [
-            { validator: validateCode, trigger: 'blur' }
-          ]
-        });
+          username: [ { validator: validateUsername, trigger: 'blur' } ],
+          password: [ { validator: validatePassword, trigger: 'blur' } ]
+      });
       //页面参数
      const menuTab = reactive([
         { txt: "登录", current: true, type: 'login' },
@@ -119,6 +74,8 @@ export default {
       ]);
       //模块值
       const model = ref('login');
+      //按钮状态参数
+      const btnstatus = ref(false);
       //方法
         //登录注册切换
         const toggleMenu = item=>{
@@ -127,34 +84,58 @@ export default {
             })
             item.current = true;
             model.value = item.type;
-        }
+        };
         //提交
         const submitForm = formName =>{
-            context.refs[formName].validate((valid) => {
+            refs[formName].validate((valid) => {
                 if (valid) {
-                    alert('submit!');
+                    btnstatus.value = true;
+                    if(model.value == 'login'){
+                        //访问登录api
+                        login(userinfo).then(res=>{
+                          if(res.data.code === 200){
+                            root.$notify({title: res.data.msg, type: 'success'});
+                          }else if(res.data.code === 201){
+                            root.$notify.error({title: res.data.msg});
+                          }
+                          btnstatus.value = false;
+                        });
+                    }else if(model.value == 'register'){
+                        //访问注册api
+                        register(userinfo).then(res=>{
+                            if(res.data.code === 200){
+                              root.$notify({title: res.data.msg, type: 'success'});
+                            }else if(res.data.code === 201 || res.data.code === 202){
+                              root.$notify.error({title: res.data.msg});
+                            }
+                            btnstatus.value = false;
+                        });
+                    }
+                    
                 } else {
-                    console.log('error submit!!');
+                   root.$message({message: '请完善信息!',});
                     return false;
                 }
             });
-        }
+        };
         return {
             //参数
-            ruleForm,
+            userinfo,
+            btnstatus,
             rules,
             menuTab,
             model,
             //方法
             toggleMenu,
-            submitForm,
+            submitForm
         }
   }
 };
 </script>
 <style lang="scss" scoped>
 .login {
-  background-color: pink;
+  background-color: #8DB6CD;
+  padding-top: 20vh;
   height: 100vh;
 }
 .login_warp {
