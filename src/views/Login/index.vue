@@ -95,6 +95,7 @@ export default {
                         login(userinfo).then(res=>{
                           if(res.data.code === 200){
                             root.$notify({title: res.data.msg, type: 'success'});
+                            root.$router.push({path:'/Layout'});
                           }else if(res.data.code === 201){
                             root.$notify.error({title: res.data.msg});
                           }
