@@ -91,8 +91,8 @@ export default {
                 if (valid) {
                     btnstatus.value = true;
                     if(model.value == 'login'){
-                        //访问登录api
-                        login(userinfo).then(res=>{
+                      //测试
+                      root.$store.dispatch('login/X_login',userinfo).then(res=>{
                           if(res.data.code === 200){
                             root.$notify({title: res.data.msg, type: 'success'});
                             root.$router.push({path:'/Layout'});
@@ -100,7 +100,17 @@ export default {
                             root.$notify.error({title: res.data.msg});
                           }
                           btnstatus.value = false;
-                        });
+                      });
+                        //访问登录api
+                        // login(userinfo).then(res=>{
+                        //   if(res.data.code === 200){
+                        //     root.$notify({title: res.data.msg, type: 'success'});
+                        //     root.$router.push({path:'/Layout'});
+                        //   }else if(res.data.code === 201){
+                        //     root.$notify.error({title: res.data.msg});
+                        //   }
+                        //   btnstatus.value = false;
+                        // });
                     }else if(model.value == 'register'){
                         //访问注册api
                         register(userinfo).then(res=>{

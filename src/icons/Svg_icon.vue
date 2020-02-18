@@ -1,7 +1,6 @@
 <template>
     <div class="svgIcon_warp">
         {{ name }}
-        <button @click="ChangeName">改变</button>
     </div>    
 </template>
 <script>
@@ -21,12 +20,8 @@ export default {
     },
     setup(props,{ root }){
         const name = ref(props.name);
-        const ChangeName = () => {
-            name.value = '我被改变了';
-            console.log(name.value);
-        };
         return {
-            name,ChangeName
+            name
         }
     }
 }

@@ -1,13 +1,7 @@
 <template>
-    <div class="nav_warp">
-
-<el-radio-group v-model="isCollapse" style="margin-bottom: 20px;">
-  <el-radio-button :label="false">展开</el-radio-button>
-  <el-radio-button :label="true">收起</el-radio-button>
-</el-radio-group>
-
-            <el-menu default-active="1-4-1" class="el-menu-vertical-demo" @open="handleOpen"
-             @close="handleClose" :collapse="isCollapse" background-color="transparent" text-color="#fff" active-text-color="#B0E2FF">
+    <div id="nav_warp">
+            <el-menu default-active="1-4-1" class="el-menu-vertical-demo" style="border-right:0;"
+          :collapse="isCollapse" background-color="black" text-color="#fff" active-text-color="#B0E2FF">
             
             <template v-for="(item,index) in router">
                 <el-submenu :index="index+''"  :key="item.id" v-show="item.meta.show">
@@ -44,40 +38,45 @@
                 <span slot="title">导航四</span>
             </el-menu-item> -->
             </el-menu>
-         <svg_icon :name="name" />
     </div>
 </template>
 <script>
-import { ref, reactive } from '@vue/composition-api';
+import { ref, reactive, computed } from '@vue/composition-api';
 export default {
     name: 'navMenu',
     setup(props,{ root }){
+        //获取路由列表
         const router = reactive(root.$router.options.routes);
-        console.log(router);
-
-        const isCollapse = ref(false);
-        const handleOpen = (key, keyPath) => {
-            console.log(key, keyPath);
-        };
-        const handleClose = (key, keyPath) => {
-            console.log(key, keyPath);
-        };
-
-        const name = ref('我是Nav');
+        //监听伸缩导航变化
+        const isCollapse =computed(()=>root.$store.state.layout.isCollapse);
         return {
-            isCollapse,handleOpen,handleClose,router,
-            name
+            isCollapse,
+            router
         }
     }
 }
 </script>
 <style lang="scss" scoped>
-.nav_warp {
+#nav_warp {
     position: fixed;
     left: 0;
     top: 0;
-    width: 250px;
     height:100vh;
     background-color:#1E1E1E;
+    transition: all .3s ease 0s;
+}
+.open {
+    #nav_warp {
+        width:250px;
+    }
+}
+.close {
+     #nav_warp {
+        width:64px;
+    }
+}
+.is-active {
+    background-color: #fff !important;
+    color:black !important;
 }
 </style>
